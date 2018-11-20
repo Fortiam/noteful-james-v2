@@ -82,9 +82,9 @@ router.put('/:id', (req, res, next) => {
   .from('notes')
   .where('id', id)
   .update(updateObj)
+  .returning(['id', 'title', 'content'])
   .then(results => res.json(results))
   .catch(err => next(err));
-  
 });
 
 // Post (insert) an item
@@ -101,10 +101,11 @@ router.post('/', (req, res, next) => {
   knex
   .from('notes')
   .insert(newItem)
-  .returning('id', 'name', 'title')
-  .then(results=> res.location(`http://${req.headers.host}/notes/${results.id}`).status(201).json(results))
+  .returning(['title', 'content', 'id'])
+  .then(function(results){
+    res.location(`http://${req.headers.host}/notes/${results[0].id}`).status(201).json(results);
+  })
   .catch(err=> next(err));
-  
 });
 
 // Delete an item
@@ -116,7 +117,6 @@ router.delete('/:id', (req, res, next) => {
   .del()
   .then(results=> res.status(204).end())
   .catch(err=> next(err));
-  
 });
 
 module.exports = router;
