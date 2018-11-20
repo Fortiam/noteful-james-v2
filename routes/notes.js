@@ -52,7 +52,6 @@ router.get('/:id', (req, res, next) => {
   .catch(function(err){
     err.status = 404;
     next(err);});
-
 });
 
 // Put update an item
