@@ -21,7 +21,7 @@ router.get('/:id', function(req, res, next){
     .select('id', 'name')
     .from('folders')
     .where('id', whichId)
-    .returning('id', 'name')
+    .returning(['id', 'name'])
     .then(function(results) {
         console.log(results);
         if(results.length === 0){

@@ -31,7 +31,7 @@ router.get('/', (req, res, next) => {
   })
   .orderBy('notes.id')
   .then(results => {
-    results.status(200);
+    //results.status(200);
     res.json(results);
   })
   .catch(err => {
