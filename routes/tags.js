@@ -60,7 +60,28 @@ router.post('/', function(req, res, next){
 });
 
 router.put('/:id', function(req, res, next){
-
+  const id = req.params.id;
+  const { name } = req.body;
+   /***** Never trust users. Validate input *****/
+   if (!name) {
+    const err = new Error('Missing `name` in request body');
+    err.status = 400;
+    return next(err);
+  }
+  if(isNaN(parseInt(id))){
+    const err = new Error('Tag number not valid');
+    err.status = 404;
+    return next(err);
+  }
+  knex
+    .into('tags')
+    .update('name', name)
+    .where('id', id)
+    .returning(['id', 'name'])
+    .then(function([results]){
+      res.json(results);
+    })
+    .catch(err=> next(err));
 });
 
 router.delete('/:id', function(req, res, next){
