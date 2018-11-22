@@ -6,11 +6,12 @@ const knex = require('../knex');
 
 router.get('/', function(req, res, next){
     knex
-      .select('tags.name', 'tags.id','notes.title', 'notes_tags.note_id')
-      .from('notes_tags')
-      .join('notes', 'notes.id', 'notes_tags.note_id')
-      .join('tags', 'notes_tags.tag_id', 'tags.id')
-      .returning(['tags.name', 'tags.id','notes.title', 'notes_tags.note_id'])
+      .select('tags.name', 'tags.id'/*,'notes.title', 'notes_tags.note_id'*/)
+      .from('tags')
+      // .leftJoin('notes', 'notes.id', 'notes_tags.note_id')
+      // .rightJoin('notes_tags', 'notes_tags.tag_id', 'tags.id')
+      .orderBy('tags.id')
+      .distinct()
       .then(function(results){
           res.json(results);
       })
@@ -56,7 +57,13 @@ router.post('/', function(req, res, next){
     const result = results[0];
     res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);
   })
-  .catch(err => next(err));
+  .catch(err => {
+    if (err.message.includes('duplicate')){
+      const error = new Error('Tag already exists. Invalid request');
+      error.status = 409;
+      return next(error);
+    }
+    return next(err);});
 });
 
 router.put('/:id', function(req, res, next){

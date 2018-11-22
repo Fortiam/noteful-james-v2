@@ -9,6 +9,7 @@ router.get('/', function(req, res, next){
     knex
     .select('id', 'name')
     .from('folders')
+    .orderBy('id')
     .then(results => {
         res.json(results);
     })

@@ -97,28 +97,52 @@ router.put('/:id', (req, res, next) => {
       }
     }
   });
-  //console.log(updateObj); //this is title, content, and folder_id = '101'
   /***** Never trust users - validate input *****/
   if (!updateObj.title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
-  knex
+  return knex
   .select('notes.id')
   .from('notes')
   .where('notes.id', id)
   .update(updateObj)
-  .then(function(theId){
-    console.log(theId);
+  .then(function(){
+    //delete related tags from notes_tags table
     return knex
-    .select('notes.id', 'notes.title', 'notes.content', 'notes.folder_id as folderId', 'folders.name as folderName')
-    .from('notes')
+    .from('notes_tags')
+    .where('note_id', id)
+    .delete();
+  })
+  .then(function(){
+    //insert tags into notes_tags table
+    const tagsInsert = req.body.tags.map(tagId => ({ note_id: id, tag_id: tagId }));
+    return knex
+    .from('notes_tags')
+    .insert(tagsInsert);
+  })
+  .then(function(){
+    //select new note and leftjoin on folders And tags
+    return knex
+    .select('notes.id', 'notes.title', 'notes.content', 'notes.folder_id as folderId', 'folders.name as folderName', 'tags.id as tagId', 'tags.name as tagName')
+    .from('notes_tags')
+    .leftJoin('notes', 'notes_tags.note_id', 'notes.id')
     .leftJoin('folders', 'notes.folder_id', 'folders.id')
-    .where('notes.id', id)
-    .then(([results]) =>res.json(results))
+    .leftJoin('tags', 'tags.id', 'notes_tags.tag_id')
+    .where('notes.id', id);
+    })
+    .then((results) =>{
+      //hydrate results if they exist
+      if(results){
+        const hydro = hydrateNotes(results);
+      res.status(200).json(hydro[0]);
+      }
+      else {
+      next();
+      }
+    })
     .catch(err => next(err));
-  });
 });
 
 // Post (insert) an item
