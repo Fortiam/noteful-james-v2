@@ -62,3 +62,4 @@ typings/
 
 #script for reseeding for test
 a.sh
+private.js
