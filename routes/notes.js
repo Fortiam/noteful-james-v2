@@ -55,6 +55,11 @@ router.get('/', (req, res, next) => {
 // Get a single item
 router.get('/:id', (req, res, next) => {
   const id = req.params.id;
+  if(isNaN(parseInt(id))){
+    const err = new Error('id Invalid Number');
+    err.status = 404;
+    return next(err);
+  }
   knex
   .select('notes.id', 'title', 'content', 'folders.id as folderId', 'tags.name as tagName', 'tags.id as tagId')
   .from('notes')
@@ -80,9 +85,9 @@ router.get('/:id', (req, res, next) => {
 // Put update an item
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;
-  if(!id){
+  if(isNaN(id)){
     const err = new Error('Invalid `id`');
-    err.status = 400;
+    err.status = 404;
     return next(err);
   }
   /***** Never trust users - validate input *****/
