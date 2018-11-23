@@ -32,17 +32,19 @@ describe('Static Server', function () {
     });
 });
 
-describe('Noteful API', function () {
+describe('Noteful all API endpoints', function () {
     const seedData = require('../db/seedData');
   
     beforeEach(function () {
-      return seedData('../db/noteful.sql');
+       
+      return seedData('./db/noteful.sql');
     });
   
+
     after(function () {
       return knex.destroy(); // destroy the connection
     });
-});  
+  
 
 describe('GET /api/notes', function () {
     it('should return the default of 10 Notes ', function () {
@@ -163,6 +165,7 @@ describe('PUT /api/notes/:id', function () {
 
     it('should update the note', function () {
         const testValidData = {"title": "The updated note still valid", "content": "also still very Valid", "folderId": 100, "tags": [102]};
+        const resultsDataExpected = {"id": 1001, "title": "The updated note still valid", "content": "also still very Valid", "folderId": 100, "folderName" :"Archive","tags": [{"id": 102, "name": "tag three"}]};
         return chai.request(app)
         .put('/api/notes/1001')
         .send(testValidData)
@@ -171,6 +174,7 @@ describe('PUT /api/notes/:id', function () {
             expect(res.body).to.be.an('object');
             expect(res.body.title).to.have.include('The updated note still valid');
             expect(res.body.content).to.have.include('also still very Valid');
+            expect(res.body).to.deep.equal(resultsDataExpected);
             expect(res.body.id).to.equal(1001);
         });
     });
@@ -207,4 +211,6 @@ describe('DELETE  /api/notes/:id', function () {
         });
     });
 });
+});
+
 });
